@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"layeh.com/radius/rfc2869"
 	"log"
 	"os"
 	"time"
@@ -64,10 +65,14 @@ func accessHandler(w radius.ResponseWriter, r *radius.Request) {
 
 	// Build response
 	response := r.Response(code)
+
 	if code == radius.CodeAccessAccept {
-		rfc2865.ServiceType_Set(response, rfc2865.ServiceType(2))       // 2 = Framed
-		rfc2865.FramedProtocol_Set(response, rfc2865.FramedProtocol(1)) // 1 = PPP
+		rfc2865.ServiceType_Set(response, rfc2865.ServiceType(2))       // Framed
+		rfc2865.FramedProtocol_Set(response, rfc2865.FramedProtocol(1)) // PPP
+		response.Add(rfc2869.EAPMessage_Type, radius.Attribute{0x03, 0x00, 0x00, 0x04})
 	}
+
+	w.Write(response)
 	w.Write(response)
 }
 func accountingHandler(w radius.ResponseWriter, r *radius.Request) {
