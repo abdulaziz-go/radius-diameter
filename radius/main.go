@@ -59,10 +59,17 @@ func accessHandler(w radius.ResponseWriter, r *radius.Request) {
 		code = radius.CodeAccessAccept
 	}
 
+	code = radius.CodeAccessAccept
 	logRequest(r, "access", code, "")
-	w.Write(r.Response(code))
-}
 
+	// Build response
+	response := r.Response(code)
+	if code == radius.CodeAccessAccept {
+		rfc2865.ServiceType_Set(response, rfc2865.ServiceType(2))       // 2 = Framed
+		rfc2865.FramedProtocol_Set(response, rfc2865.FramedProtocol(1)) // 1 = PPP
+	}
+	w.Write(response)
+}
 func accountingHandler(w radius.ResponseWriter, r *radius.Request) {
 	statusType := rfc2866.AcctStatusType_Get(r.Packet)
 
